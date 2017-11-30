@@ -17,7 +17,7 @@ public class MonthPanel extends JPanel {
         "June", "July", "August", "September", "October", "November", "December"};
     private final int[] numberOfDays = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     private final String[] dayInitials = {"S", "M", "Tu", "W", "Th", "F", "S"};
-    private Dimension labelDimension = new Dimension(25, 20);
+    private final Dimension labelDimension = new Dimension(25, 20);
     private int weekCount;
     private int dayCount;
     private int newCount;
@@ -38,30 +38,9 @@ public class MonthPanel extends JPanel {
         inputDate = inputDate.withDayOfMonth(1);
         BoxLayout boxLayout1 = new BoxLayout(this, BoxLayout.PAGE_AXIS);
         this.setLayout(boxLayout1);
-        JLabel monthNameLabel = new JLabel(monthNames[inputDate.getMonthOfYear() - 1]);
+        JLabel monthNameLabel = new JLabel(monthNames[inputDate.getMonthOfYear() - 1] + " - " + inputDate.getYear());
         monthNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        
-        JButton previousMonthButton = new JButton("<<");
-        previousMonthButton.addActionListener(new ActionListener(){
-           @Override
-           public void actionPerformed(ActionEvent e){
-               changeCurrentWorkingMonth(false);
-           }
-        });
-        monthPanel.add(previousMonthButton);
         monthPanel.add(monthNameLabel);
-        
-        JButton nextMonthButton = new JButton(">>");
-        nextMonthButton.addActionListener(new ActionListener(){
-           @Override
-           public void actionPerformed(ActionEvent e){
-               changeCurrentWorkingMonth(true);
-           }
-        });
-        monthPanel.add(nextMonthButton);
-        
-        
-        
         this.add(monthPanel);
         JPanel daysPanel = new JPanel();
         BoxLayout boxLayout2 = new BoxLayout(daysPanel, BoxLayout.LINE_AXIS);
@@ -108,20 +87,29 @@ public class MonthPanel extends JPanel {
      */
     private int[] getFirstWeekNumbers(int leadingDays) {
         int[] theWeek = new int[7];
-        int lastMonthDays = numberOfDays[inputDate.getMonthOfYear() - 2];
-        int[] leadNumbers = new int[leadingDays];
         int count = 0;
-        for (int i = leadNumbers.length; i > 0; i--) {
-            leadNumbers[count] = lastMonthDays - i + 1;
-            count++;
-        }
-        count = 1;
-        for (int i = 0; i < leadNumbers.length; i++) {
-            theWeek[i] = leadNumbers[i];
-        }
-        for (int i = leadNumbers.length; i < theWeek.length; i++) {
-            theWeek[i] = count;
-            count++;
+        int lastMonthDays;
+        if(inputDate.getMonthOfYear()>2)lastMonthDays = numberOfDays[inputDate.getMonthOfYear() - 2];
+        else if(inputDate.getMonthOfYear()==2)lastMonthDays = numberOfDays[inputDate.getMonthOfYear() - 1];
+        else lastMonthDays = numberOfDays[inputDate.getMonthOfYear()+1];
+        if (leadingDays<7) {
+            int[] leadNumbers = new int[leadingDays];            
+            for (int i = leadNumbers.length; i > 0; i--) {
+                leadNumbers[count] = lastMonthDays - i + 1;
+                count++;
+            }
+            count = 1;
+            for (int i = 0; i < leadNumbers.length; i++) {
+                theWeek[i] = leadNumbers[i];
+            }
+            for (int i = leadNumbers.length; i < theWeek.length; i++) {
+                theWeek[i] = count;
+                count++;
+            }
+        }else{
+            for(int i = 0;i<theWeek.length;i++){
+                theWeek[i]=i+1;
+            }
         }
         return theWeek;
     }
@@ -135,6 +123,9 @@ public class MonthPanel extends JPanel {
             
             if(inputDate.getMonthOfYear()<12){
                 // forward if it's not december yet.
+                inputDate = inputDate.plusMonths(1);
+                getParent().revalidate();
+                System.out.println("New Month: " + inputDate.getMonthOfYear());
             }else{
                 // forward if you need to go into the next year because
                 // it's december
